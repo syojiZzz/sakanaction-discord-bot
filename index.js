@@ -561,5 +561,5 @@ async function runChecks() {
   await saveState(state);
 }
 
-await testAllNotifications();
-console.log("All notification tests completed.");
+await runChecks();
+console.log("One-shot check completed.");
