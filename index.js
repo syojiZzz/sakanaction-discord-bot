@@ -86,7 +86,7 @@ async function postDiscord(
   }
 
   await http.post(webhook, {
-    username: "sakanaction-mail",
+    username: "サカナクションメールサービス",
     embeds: [embed]
   });
 }
