@@ -15,7 +15,8 @@ const WEBHOOKS = {
 const YOUTUBE_CHANNEL_ID = process.env.YOUTUBE_CHANNEL_ID;
 const STATE_FILE = "./data/state.json";
 
-const configuredWebhookCount = Object.values(WEBHOOKS).filter(Boolean).length;
+const configuredWebhookCount =
+  Object.values(WEBHOOKS).filter(Boolean).length;
 
 if (configuredWebhookCount === 0) {
   console.error("No Discord webhook configured.");
@@ -50,7 +51,14 @@ async function saveState(state) {
   );
 }
 
-async function postDiscord(channel, title, url, source, description = "") {
+async function postDiscord(
+  channel,
+  title,
+  url,
+  source,
+  description = "",
+  imageUrl = null
+) {
   const webhook = WEBHOOKS[channel];
 
   if (!webhook) {
@@ -58,31 +66,61 @@ async function postDiscord(channel, title, url, source, description = "") {
     return;
   }
 
-  const payload = {
-    username: "サカナクション通知Bot",
-    embeds: [{
-      title: String(title).slice(0, 250),
-      url,
-      description: String(description || "公式情報が更新されました。").slice(0, 1000),
-      color: 0x5865F2,
-      footer: {
-        text: `サカナクション公式情報 • ${source}`
-      },
-      timestamp: new Date().toISOString()
-    }]
+  const embed = {
+    title: String(title).slice(0, 250),
+    url,
+    description: String(
+      description || "公式情報が更新されました。"
+    ).slice(0, 1000),
+    color: 0x5865F2,
+    footer: {
+      text: `サカナクション公式情報 • ${source}`
+    },
+    timestamp: new Date().toISOString()
   };
 
-  await http.post(webhook, payload);
+  if (imageUrl) {
+    embed.image = {
+      url: imageUrl
+    };
+  }
+
+  await http.post(webhook, {
+    username: "sakanaction-mail",
+    embeds: [embed]
+  });
 }
 
 function cleanText(value) {
-  return String(value || "").replace(/\s+/g, " ").trim();
+  return String(value || "")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 function absoluteUrl(href, base) {
   try {
     return new URL(href, base).href;
   } catch {
+    return null;
+  }
+}
+
+// NEWS記事のメイン画像を取得
+async function getArticleImage(articleUrl) {
+  try {
+    const { data } = await http.get(articleUrl);
+    const $ = cheerio.load(data);
+
+    const image =
+      $('meta[property="og:image"]').attr("content") ||
+      $('meta[name="twitter:image"]').attr("content");
+
+    return image
+      ? absoluteUrl(image, articleUrl)
+      : null;
+
+  } catch (err) {
+    console.error("Image fetch failed:", err.message);
     return null;
   }
 }
@@ -97,7 +135,11 @@ async function checkOfficialNews(state) {
     const href = absoluteUrl($(el).attr("href"), url);
     const title = cleanText($(el).text());
 
-    if (href && /\/news\/detail\//.test(href) && title.length > 3) {
+    if (
+      href &&
+      /\/news\/detail\//.test(href) &&
+      title.length > 3
+    ) {
       items.push({
         key: `news:${href}`,
         title,
@@ -142,7 +184,9 @@ async function checkLiveInfo(state) {
 }
 
 async function notifyNew(items, state, source) {
-  const unique = [...new Map(items.map(x => [x.key, x])).values()];
+  const unique = [
+    ...new Map(items.map(x => [x.key, x])).values()
+  ];
 
   if (!state.initialized) {
     state.seen.push(...unique.map(x => x.key));
@@ -152,26 +196,37 @@ async function notifyNew(items, state, source) {
   for (const item of unique.reverse()) {
     if (state.seen.includes(item.key)) continue;
 
-    const channel = source.includes("NEWS") ? "news" : "live";
+    const channel = source.includes("NEWS")
+      ? "news"
+      : "live";
+
+    // NEWS記事の画像を取得
+    const imageUrl = channel === "news"
+      ? await getArticleImage(item.url)
+      : null;
 
     await postDiscord(
       channel,
       item.title,
       item.url,
       source,
-      item.description || ""
+      item.description || "",
+      imageUrl
     );
 
     if (
       channel === "news" &&
-      /(お知らせ|重要|メディア|出演|掲載|リリース|配信|番組)/i.test(item.title)
+      /(お知らせ|重要|メディア|出演|掲載|リリース|配信|番組)/i.test(
+        item.title
+      )
     ) {
       await postDiscord(
         "official",
         item.title,
         item.url,
         "公式からのお知らせ",
-        item.description || ""
+        item.description || "",
+        imageUrl
       );
     }
 
@@ -196,6 +251,7 @@ async function checkYouTube(state) {
   });
 
   const feed = parser.parse(data);
+
   const entries = feed?.feed?.entry
     ? [].concat(feed.feed.entry)
     : [];
