@@ -39,7 +39,9 @@ async function loadState() {
     return {
       seen: [],
       youtubeSeen: [],
-      yamaguchiYoutubeSeen: []
+      yamaguchiYoutubeSeen: [],
+      yamaguchiLiveScheduledSeen: [],
+      yamaguchiLiveStartedSeen: []
     };
   }
 }
@@ -312,6 +314,113 @@ async function checkYouTube(state) {
   );
 }
 
+
+async function checkYamaguchiLiveStreams(state) {
+  if (!YAMAGUCHI_YOUTUBE_CHANNEL_ID) {
+    console.log("Yamaguchi live: channel ID not configured.");
+    return;
+  }
+
+  if (!WEBHOOKS.yamaguchi) {
+    console.log("Yamaguchi live: webhook not configured.");
+    return;
+  }
+
+  state.yamaguchiLiveScheduledSeen ||= [];
+  state.yamaguchiLiveStartedSeen ||= [];
+
+  const feedUrl =
+    `https://www.youtube.com/feeds/videos.xml?channel_id=${encodeURIComponent(YAMAGUCHI_YOUTUBE_CHANNEL_ID)}`;
+
+  const { data } = await http.get(feedUrl);
+
+  const parser = new XMLParser({
+    ignoreAttributes: false
+  });
+
+  const feed = parser.parse(data);
+
+  const entries = feed?.feed?.entry
+    ? [].concat(feed.feed.entry)
+    : [];
+
+  for (const entry of entries) {
+    const id = entry["yt:videoId"];
+    if (!id) continue;
+
+    const videoUrl =
+      `https://www.youtube.com/watch?v=${id}`;
+
+    try {
+      const { data: html } = await http.get(videoUrl);
+
+      const match = html.match(
+        /ytInitialPlayerResponse\s*=\s*(\{.*?\})\s*;/s
+      );
+
+      if (!match) continue;
+
+      const player = JSON.parse(match[1]);
+
+      const details =
+        player?.microformat
+          ?.playerMicroformatRenderer
+          ?.liveBroadcastDetails;
+
+      if (!details) continue;
+
+      const title =
+        cleanText(entry.title) || "山口一郎 ライブ配信";
+
+      // 配信予定
+      if (
+        details.isUpcoming &&
+        !state.yamaguchiLiveScheduledSeen.includes(id)
+      ) {
+        const startTime = details.startTimestamp
+          ? new Date(details.startTimestamp).toLocaleString("ja-JP", {
+              timeZone: "Asia/Tokyo"
+            })
+          : "日時未定";
+
+        await postDiscord(
+          "yamaguchi",
+          `【ライブ配信予定】${title}`,
+          videoUrl,
+          "山口一郎チャンネル",
+          `配信予定日時：${startTime}`
+        );
+
+        state.yamaguchiLiveScheduledSeen.push(id);
+        await saveState(state);
+      }
+
+      // 配信開始
+      if (
+        details.isLiveNow &&
+        !state.yamaguchiLiveStartedSeen.includes(id)
+      ) {
+        await postDiscord(
+          "yamaguchi",
+          `【ライブ配信開始】${title}`,
+          videoUrl,
+          "山口一郎チャンネル",
+          "山口一郎チャンネルのライブ配信が始まりました！"
+        );
+
+        state.yamaguchiLiveStartedSeen.push(id);
+        await saveState(state);
+      }
+
+    } catch (err) {
+      console.error(
+        `Yamaguchi live check failed (${id}):`,
+        err.message
+      );
+    }
+  }
+}
+
 async function checkYamaguchiYouTube(state) {
   await checkYouTubeChannel(
     state,
@@ -321,6 +430,8 @@ async function checkYamaguchiYouTube(state) {
     "yamaguchiYoutubeInitialized",
     "山口一郎チャンネル"
   );
+
+  await checkYamaguchiLiveStreams(state);
 }
 
 async function runChecks() {
