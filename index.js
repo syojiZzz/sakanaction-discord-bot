@@ -322,49 +322,6 @@ async function checkYamaguchiYouTube(state) {
   );
 }
 
-  const feedUrl =
-    `https://www.youtube.com/feeds/videos.xml?channel_id=${encodeURIComponent(YOUTUBE_CHANNEL_ID)}`;
-
-  const { data } = await http.get(feedUrl);
-
-  const parser = new XMLParser({
-    ignoreAttributes: false
-  });
-
-  const feed = parser.parse(data);
-
-  const entries = feed?.feed?.entry
-    ? [].concat(feed.feed.entry)
-    : [];
-
-  if (!state.youtubeInitialized) {
-    state.youtubeSeen = entries
-      .map(e => e["yt:videoId"])
-      .filter(Boolean);
-
-    state.youtubeInitialized = true;
-    return;
-  }
-
-  for (const e of entries.reverse()) {
-    const id = e["yt:videoId"];
-
-    if (!id || state.youtubeSeen.includes(id)) continue;
-
-    const title = cleanText(e.title) || "新しい動画";
-
-    await postDiscord(
-      "youtube",
-      title,
-      `https://www.youtube.com/watch?v=${id}`,
-      "公式YouTube"
-    );
-
-    state.youtubeSeen.push(id);
-    await saveState(state);
-  }
-}
-
 async function runChecks() {
   const state = await loadState();
 
@@ -375,7 +332,7 @@ async function runChecks() {
   const checks = [
     ["NEWS", () => checkOfficialNews(state)],
     ["LIVE", () => checkLiveInfo(state)],
-    ["YouTube", () => checkYouTube(state)]
+    ["YouTube", () => checkYouTube(state)],
     ["山口一郎YouTube", () => checkYamaguchiYouTube(state)],
   ];
 
