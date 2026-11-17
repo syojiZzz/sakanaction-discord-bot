@@ -9,7 +9,8 @@ const WEBHOOKS = {
   news: process.env.DISCORD_WEBHOOK_NEWS,
   youtube: process.env.DISCORD_WEBHOOK_YOUTUBE,
   live: process.env.DISCORD_WEBHOOK_LIVE,
-  official: process.env.DISCORD_WEBHOOK_OFFICIAL
+  official: process.env.DISCORD_WEBHOOK_OFFICIAL,
+  yamaguchi: process.env.DISCORD_WEBHOOK_YAMAGUCHI
 };
 
 const YOUTUBE_CHANNEL_ID = process.env.YOUTUBE_CHANNEL_ID;
