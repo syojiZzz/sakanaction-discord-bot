@@ -14,6 +14,7 @@ const WEBHOOKS = {
 };
 
 const YOUTUBE_CHANNEL_ID = process.env.YOUTUBE_CHANNEL_ID;
+const YAMAGUCHI_YOUTUBE_CHANNEL_ID = process.env.YAMAGUCHI_YOUTUBE_CHANNEL_ID;
 const STATE_FILE = "./data/state.json";
 
 const configuredWebhookCount =
@@ -38,6 +39,7 @@ async function loadState() {
     return {
       seen: [],
       youtubeSeen: []
+      yamaguchiYoutubeSeen: []
     };
   }
 }
@@ -45,6 +47,7 @@ async function loadState() {
 async function saveState(state) {
   state.seen = state.seen.slice(-500);
   state.youtubeSeen = state.youtubeSeen.slice(-100);
+  state.yamaguchiYoutubeSeen = state.yamaguchiYoutubeSeen.slice(-100);
 
   await fs.writeFile(
     STATE_FILE,
@@ -236,11 +239,88 @@ async function notifyNew(items, state, source) {
   }
 }
 
-async function checkYouTube(state) {
-  if (!YOUTUBE_CHANNEL_ID) {
-    console.log("YouTube channel ID not configured.");
+async function checkYouTubeChannel(
+  state,
+  channelId,
+  webhook,
+  seenKey,
+  initializedKey,
+  source
+) {
+  if (!channelId) {
+    console.log(`${source}: channel ID not configured.`);
     return;
   }
+
+  if (!WEBHOOKS[webhook]) {
+    console.log(`${source}: webhook not configured.`);
+    return;
+  }
+
+  const feedUrl =
+    `https://www.youtube.com/feeds/videos.xml?channel_id=${encodeURIComponent(channelId)}`;
+
+  const { data } = await http.get(feedUrl);
+
+  const parser = new XMLParser({
+    ignoreAttributes: false
+  });
+
+  const feed = parser.parse(data);
+
+  const entries = feed?.feed?.entry
+    ? [].concat(feed.feed.entry)
+    : [];
+
+  if (!state[initializedKey]) {
+    state[seenKey] = entries
+      .map(e => e["yt:videoId"])
+      .filter(Boolean);
+
+    state[initializedKey] = true;
+    return;
+  }
+
+  for (const e of entries.reverse()) {
+    const id = e["yt:videoId"];
+
+    if (!id || state[seenKey].includes(id)) continue;
+
+    const title = cleanText(e.title) || "新しい動画";
+
+    await postDiscord(
+      webhook,
+      title,
+      `https://www.youtube.com/watch?v=${id}`,
+      source
+    );
+
+    state[seenKey].push(id);
+    await saveState(state);
+  }
+}
+
+async function checkYouTube(state) {
+  await checkYouTubeChannel(
+    state,
+    YOUTUBE_CHANNEL_ID,
+    "youtube",
+    "youtubeSeen",
+    "youtubeInitialized",
+    "サカナクション公式YouTube"
+  );
+}
+
+async function checkYamaguchiYouTube(state) {
+  await checkYouTubeChannel(
+    state,
+    YAMAGUCHI_YOUTUBE_CHANNEL_ID,
+    "yamaguchi",
+    "yamaguchiYoutubeSeen",
+    "yamaguchiYoutubeInitialized",
+    "山口一郎チャンネル"
+  );
+}
 
   const feedUrl =
     `https://www.youtube.com/feeds/videos.xml?channel_id=${encodeURIComponent(YOUTUBE_CHANNEL_ID)}`;
@@ -296,6 +376,7 @@ async function runChecks() {
     ["NEWS", () => checkOfficialNews(state)],
     ["LIVE", () => checkLiveInfo(state)],
     ["YouTube", () => checkYouTube(state)]
+    ["山口一郎YouTube", () => checkYamaguchiYouTube(state)]
   ];
 
   for (const [name, fn] of checks) {
