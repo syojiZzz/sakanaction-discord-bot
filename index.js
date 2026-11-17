@@ -603,6 +603,8 @@ async function testStreamsPage() {
 
   const index = html.indexOf("ytInitialData");
 
+  console.log("YT DATA:", html.slice(index, index + 5000));
+
   const data = JSON.parse(
   html.slice(index + "ytInitialData = ".length).split(";</script>")[0]
 );
