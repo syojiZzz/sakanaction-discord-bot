@@ -609,30 +609,27 @@ async function testStreamsPage() {
   html.slice(index + "ytInitialData = ".length).split(";</script>")[0]
 );
 
-function findLiveData(obj, path = "root") {
-  if (!obj || typeof obj !== "object") return;
+const contents =
+  data.contents.twoColumnBrowseResultsRenderer
+    .tabs[3].tabRenderer.content
+    .richGridRenderer.contents;
 
-  if (Array.isArray(obj)) {
-    obj.forEach((item, i) => findLiveData(item, `${path}[${i}]`));
-    return;
-  }
+console.log("GRID ITEMS:", contents.length);
 
-  const keys = Object.keys(obj);
+const item = contents.find(
+  x => x.richItemRenderer?.content?.lockupViewModel
+);
 
-  if (
-    keys.some(key =>
-      /video|live|stream|reel/i.test(key)
-    )
-  ) {
-    console.log("FOUND:", path, keys);
-  }
+const lockup = item?.richItemRenderer?.content?.lockupViewModel;
 
-  for (const [key, value] of Object.entries(obj)) {
-    findLiveData(value, `${path}.${key}`);
-  }
+if (lockup) {
+  console.log(
+    "LOCKUP SAMPLE:",
+    JSON.stringify(lockup, null, 2).slice(0, 8000)
+  );
+} else {
+  console.log("LOCKUP NOT FOUND");
 }
-
-findLiveData(data);
 
   console.log(
     "STREAMS HTML SAMPLE:",
