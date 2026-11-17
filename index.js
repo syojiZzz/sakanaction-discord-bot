@@ -111,7 +111,7 @@ try {
       channel === "youtube" ? "サカナクション公式YouTube" :
       channel === "news" ? "サカナクションNEWS" :
       channel === "live" ? "サカナクションLIVE" :
-      "サカナクション公式情報",
+      "サカナクションメールサービス",
     embeds: [embed]
   });
 } catch (err) {
