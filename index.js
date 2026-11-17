@@ -108,6 +108,7 @@ try {
     err.response?.data || err.message
   );
   throw err;
+  }
 }
 
 function cleanText(value) {
