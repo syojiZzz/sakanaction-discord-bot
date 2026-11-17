@@ -48,8 +48,24 @@
   "xSinceId": null,
   "initialized": true,
   "youtubeInitialized": true,
-  "yamaguchiYoutubeSeen": [],
-  "yamaguchiYoutubeInitialized": false,
+  "yamaguchiYoutubeSeen": [
+    "O2ZxeshPmMs",
+    "JsCslxnCv0w",
+    "hz2gBSgnnHM",
+    "lDAClXuPxQ4",
+    "GXnFjt0L7qM",
+    "MsuQFzWY_k4",
+    "nCuD70_HXss",
+    "kw4cuzdAZfY",
+    "YWNUaiu2Wss",
+    "8xo1d-J7ylg",
+    "Biqvxw1wFBs",
+    "HQoVJo8-8TE",
+    "yCVuBIZztiQ",
+    "qEaZWrUrFSc",
+    "Tii-NIRAjDQ"
+  ],
+  "yamaguchiYoutubeInitialized": true,
   "yamaguchiLiveScheduledSeen": [],
   "yamaguchiLiveStartedSeen": []
 }
