@@ -43,6 +43,7 @@ jobs:
           DISCORD_WEBHOOK_LIVE: ${{ secrets.DISCORD_WEBHOOK_LIVE }}
           DISCORD_WEBHOOK_OFFICIAL: ${{ secrets.DISCORD_WEBHOOK_OFFICIAL }}
           YOUTUBE_CHANNEL_ID: ${{ secrets.YOUTUBE_CHANNEL_ID }}
+          DISCORD_WEBHOOK_YAMAGUCHI: ${{ secrets.DISCORD_WEBHOOK_YAMAGUCHI }}
 
       - name: Save notification state
         run: |
