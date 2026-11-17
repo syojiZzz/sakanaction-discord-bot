@@ -616,19 +616,29 @@ const contents =
 
 console.log("GRID ITEMS:", contents.length);
 
-const item = contents.find(
-  x => x.richItemRenderer?.content?.lockupViewModel
-);
+for (const item of contents) {
+  const lockup = item.richItemRenderer?.content?.lockupViewModel;
+  if (!lockup) continue;
 
-const lockup = item?.richItemRenderer?.content?.lockupViewModel;
+  const videoId =
+    lockup.rendererContext?.commandContext?.onTap
+      ?.innertubeCommand?.watchEndpoint?.videoId;
 
-if (lockup) {
-  console.log(
-    "LOCKUP SAMPLE:",
-    JSON.stringify(lockup, null, 2).slice(0, 8000)
+  const title =
+    lockup.metadata?.lockupMetadataViewModel?.title?.content;
+
+  const overlays =
+    lockup.contentImage?.thumbnailViewModel?.overlays || [];
+
+  const badges = overlays.flatMap(overlay =>
+    overlay.thumbnailBottomOverlayViewModel?.badges || []
   );
-} else {
-  console.log("LOCKUP NOT FOUND");
+
+  const isLive = badges.some(badge =>
+    badge.thumbnailBadgeViewModel?.text === "LIVE"
+  );
+
+  console.log("STREAM:", { videoId, title, isLive });
 }
 
   console.log(
