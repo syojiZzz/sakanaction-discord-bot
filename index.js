@@ -179,6 +179,12 @@ async function checkOfficialNews(state) {
       });
     }
   });
+  
+  console.log(
+  "NEWS detected:",
+  items.length,
+  items.map(x => x.title)
+);
 
   await notifyNew(items, state, "公式サイト NEWS");
 }
