@@ -452,6 +452,18 @@ if (!playerJson) {
 
 const player = JSON.parse(playerJson);
 
+      console.log("LIVE PLAYER KEYS:", Object.keys(player));
+
+console.log("LIVE VIDEO DETAILS:", player.videoDetails ? {
+  videoId: player.videoDetails.videoId,
+  title: player.videoDetails.title,
+  isLive: player.videoDetails.isLive,
+  isLiveContent: player.videoDetails.isLiveContent,
+  isUpcoming: player.videoDetails.isUpcoming
+} : null);
+
+console.log("LIVE MICROFORMAT:", player.microformat);
+
 const title =
   cleanText(entry.title) || "山口一郎 ライブ配信";
 
