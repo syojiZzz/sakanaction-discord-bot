@@ -28,7 +28,25 @@
     "live:https://cf.sakanaction.jp/feature/tour2026-2027",
     "news:https://sakanaction.jp/news/detail/3437?categoryId=1,2"
   ],
-  "youtubeSeen": [],
+  "youtubeSeen": [
+    "Zeduo9fh76Y",
+    "rBm9X6cwB34",
+    "v6wXDSHeIVw",
+    "0_OOf585qoQ",
+    "40RL_xHsafk",
+    "ZzlbTtMEsv0",
+    "rxigq63uJs8",
+    "ZDkajXL2NHQ",
+    "l_d8U_ncYko",
+    "euOZtEHNZRk",
+    "nsmfzGOmeLk",
+    "E5r7RsE0AiY",
+    "oNkNjeIRr4E",
+    "c7cY5Fim5SI",
+    "Mj7eQ09163w"
+  ],
   "xSinceId": null,
-  "initialized": true
+  "initialized": true,
+  "youtubeInitialized": true,
+  "yamaguchiYoutubeSeen": []
 }
