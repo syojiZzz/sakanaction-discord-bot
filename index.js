@@ -93,7 +93,12 @@ async function postDiscord(
   }
 
   await http.post(webhook, {
-    username: "サカナクションメールサービス",
+    username:
+  channel === "yamaguchi" ? "山口一郎チャンネル" :
+  channel === "youtube" ? "サカナクション公式YouTube" :
+  channel === "news" ? "サカナクションNEWS" :
+  channel === "live" ? "サカナクションLIVE" :
+  "サカナクション公式情報",
     embeds: [embed]
   });
 }
