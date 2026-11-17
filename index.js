@@ -232,7 +232,12 @@ async function notifyNew(items, state, source) {
   }
 
   for (const item of unique.reverse()) {
-    if (state.seen.includes(item.key)) continue;
+    if (state.seen.includes(item.key)) {
+  console.log("NEWS already seen:", item.title);
+  continue;
+}
+
+console.log("NEWS NEW:", item.title);
 
     const channel = source.includes("NEWS")
       ? "news"
