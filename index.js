@@ -575,6 +575,40 @@ async function testAllNotifications() {
   console.log("All notification tests completed.");
 }
 
+async function testStreamsPage() {
+  const url =
+    "https://www.youtube.com/@ichiroyamaguchichannel/streams";
+
+  const response = await axios.get(url, {
+    headers: {
+      "User-Agent":
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36"
+    }
+  });
+
+  const html = response.data;
+
+  console.log("STREAMS PAGE STATUS:", response.status);
+  console.log("STREAMS HTML LENGTH:", html.length);
+
+  for (const key of [
+    "ytInitialData",
+    "videoRenderer",
+    "gridVideoRenderer",
+    "isLive",
+    "LIVE"
+  ]) {
+    console.log(`STREAMS ${key}:`, html.includes(key));
+  }
+
+  const index = html.indexOf("ytInitialData");
+
+  console.log(
+    "STREAMS HTML SAMPLE:",
+    index >= 0 ? html.slice(index, index + 1000) : html.slice(0, 1000)
+  );
+}
+
 async function runChecks() {
   const state = await loadState();
 
@@ -605,5 +639,5 @@ async function runChecks() {
   await saveState(state);
 }
 
-await runChecks();
-console.log("One-shot check completed.");
+await testStreamsPage();
+console.log("Streams page test completed.");
