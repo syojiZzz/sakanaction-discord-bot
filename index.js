@@ -33,25 +33,37 @@ const http = axios.create({
 });
 
 async function loadState() {
+  let state;
+
   try {
-    return JSON.parse(await fs.readFile(STATE_FILE, "utf8"));
+    state = JSON.parse(await fs.readFile(STATE_FILE, "utf8"));
   } catch {
-    return {
-      seen: [],
-      youtubeSeen: [],
-      yamaguchiYoutubeSeen: [],
-      yamaguchiLiveScheduledSeen: [],
-      yamaguchiLiveStartedSeen: []
-    };
+    state = {};
   }
+
+  state.initialized = Boolean(state.initialized);
+  state.seen ||= [];
+  state.youtubeSeen ||= [];
+  state.youtubeInitialized = Boolean(state.youtubeInitialized);
+  state.yamaguchiYoutubeSeen ||= [];
+  state.yamaguchiYoutubeInitialized = Boolean(state.yamaguchiYoutubeInitialized);
+  state.yamaguchiLiveScheduledSeen ||= [];
+  state.yamaguchiLiveStartedSeen ||= [];
+
+  return state;
 }
 
 async function saveState(state) {
   state.seen = (state.seen || []).slice(-500);
   state.youtubeSeen = (state.youtubeSeen || []).slice(-100);
-  state.yamaguchiYoutubeSeen =
-    (state.yamaguchiYoutubeSeen || []).slice(-100);
+  state.yamaguchiYoutubeSeen = (state.yamaguchiYoutubeSeen || []).slice(-100);
+  state.yamaguchiLiveScheduledSeen = (state.yamaguchiLiveScheduledSeen || []).slice(-100);
+  state.yamaguchiLiveStartedSeen = (state.yamaguchiLiveStartedSeen || []).slice(-100);
+  state.youtubeInitialized = Boolean(state.youtubeInitialized);
+  state.yamaguchiYoutubeInitialized = Boolean(state.yamaguchiYoutubeInitialized);
 
+  await fs.mkdir("./data", { recursive: true });
+  
   await fs.writeFile(
     STATE_FILE,
     JSON.stringify(state, null, 2)
@@ -267,6 +279,8 @@ async function checkYouTubeChannel(
     console.log(`${source}: channel ID not configured.`);
     return;
   }
+  
+  state[seenKey] ||= [];
 
   if (!WEBHOOKS[webhook]) {
     console.log(`${source}: webhook not configured.`);
@@ -294,6 +308,7 @@ async function checkYouTubeChannel(
       .filter(Boolean);
 
     state[initializedKey] = true;
+    await saveState(state);
     return;
   }
 
@@ -327,6 +342,48 @@ async function checkYouTube(state) {
   );
 }
 
+function extractPlayerResponse(html) {
+  const marker = "ytInitialPlayerResponse";
+  const markerIndex = html.indexOf(marker);
+
+  if (markerIndex === -1) return null;
+
+  const start = html.indexOf("{", markerIndex);
+  if (start === -1) return null;
+
+  let depth = 0;
+  let inString = false;
+  let escaped = false;
+
+  for (let i = start; i < html.length; i++) {
+    const char = html[i];
+
+    if (inString) {
+      if (escaped) {
+        escaped = false;
+      } else if (char === "\\") {
+        escaped = true;
+      } else if (char === '"') {
+        inString = false;
+      }
+      continue;
+    }
+
+    if (char === '"') {
+      inString = true;
+    } else if (char === "{") {
+      depth++;
+    } else if (char === "}") {
+      depth--;
+
+      if (depth === 0) {
+        return html.slice(start, i + 1);
+      }
+    }
+  }
+
+  return null;
+}
 
 async function checkYamaguchiLiveStreams(state) {
   if (!YAMAGUCHI_YOUTUBE_CHANNEL_ID) {
@@ -365,15 +422,13 @@ async function checkYamaguchiLiveStreams(state) {
       `https://www.youtube.com/watch?v=${id}`;
 
     try {
-      const { data: html } = await http.get(videoUrl);
+     const { data: html } = await http.get(videoUrl);
 
-      const match = html.match(
-        /ytInitialPlayerResponse\s*=\s*(\{.*?\})\s*;/s
-      );
+     const playerJson = extractPlayerResponse(html);
 
-      if (!match) continue;
+     if (!playerJson) continue;
 
-      const player = JSON.parse(match[1]);
+     const player = JSON.parse(playerJson);
 
       const details =
         player?.microformat
@@ -506,4 +561,5 @@ async function runChecks() {
   await saveState(state);
 }
 
-await testAllNotifications();
+await runChecks();
+console.log("One-shot check completed.");
