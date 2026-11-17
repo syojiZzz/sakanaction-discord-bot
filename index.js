@@ -38,7 +38,7 @@ async function loadState() {
   } catch {
     return {
       seen: [],
-      youtubeSeen: []
+      youtubeSeen: [],
       yamaguchiYoutubeSeen: []
     };
   }
