@@ -45,9 +45,10 @@ async function loadState() {
 }
 
 async function saveState(state) {
-  state.seen = state.seen.slice(-500);
-  state.youtubeSeen = state.youtubeSeen.slice(-100);
-  state.yamaguchiYoutubeSeen = state.yamaguchiYoutubeSeen.slice(-100);
+  state.seen = (state.seen || []).slice(-500);
+  state.youtubeSeen = (state.youtubeSeen || []).slice(-100);
+  state.yamaguchiYoutubeSeen =
+    (state.yamaguchiYoutubeSeen || []).slice(-100);
 
   await fs.writeFile(
     STATE_FILE,
