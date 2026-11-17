@@ -376,7 +376,7 @@ async function runChecks() {
     ["NEWS", () => checkOfficialNews(state)],
     ["LIVE", () => checkLiveInfo(state)],
     ["YouTube", () => checkYouTube(state)]
-    ["山口一郎YouTube", () => checkYamaguchiYouTube(state)]
+    ["山口一郎YouTube", () => checkYamaguchiYouTube(state)],
   ];
 
   for (const [name, fn] of checks) {
