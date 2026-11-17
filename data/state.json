@@ -48,5 +48,8 @@
   "xSinceId": null,
   "initialized": true,
   "youtubeInitialized": true,
-  "yamaguchiYoutubeSeen": []
+  "yamaguchiYoutubeSeen": [],
+  "yamaguchiYoutubeInitialized": false,
+  "yamaguchiLiveScheduledSeen": [],
+  "yamaguchiLiveStartedSeen": []
 }
