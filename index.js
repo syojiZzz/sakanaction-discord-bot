@@ -434,6 +434,35 @@ async function checkYamaguchiYouTube(state) {
   await checkYamaguchiLiveStreams(state);
 }
 
+async function testAllNotifications() {
+  const tests = [
+    ["news", "【テスト】公式サイト NEWS", "NEWS通知テスト"],
+    ["live", "【テスト】LIVE / TOUR", "ライブ情報通知テスト"],
+    ["official", "【テスト】公式からのお知らせ", "公式お知らせ通知テスト"],
+    ["youtube", "【テスト】サカナクション公式YouTube", "通常動画通知テスト"],
+    ["yamaguchi", "【テスト】山口一郎チャンネル 通常動画", "通常動画通知テスト"],
+    ["yamaguchi", "【テスト】山口一郎チャンネル 配信予定", "ライブ配信予定通知テスト"],
+    ["yamaguchi", "【テスト】山口一郎チャンネル 配信開始", "ライブ配信開始通知テスト"]
+  ];
+
+  for (const [channel, title, description] of tests) {
+    try {
+      await postDiscord(
+        channel,
+        title,
+        "https://www.youtube.com/",
+        "通知システム動作テスト",
+        description
+      );
+      console.log(`${title}: OK`);
+    } catch (err) {
+      console.error(`${title}: FAILED`, err.message);
+    }
+  }
+
+  console.log("All notification tests completed.");
+}
+
 async function runChecks() {
   const state = await loadState();
 
@@ -464,6 +493,4 @@ async function runChecks() {
   await saveState(state);
 }
 
-await runChecks();
-
-console.log("One-shot check completed.");
+await testAllNotifications();
