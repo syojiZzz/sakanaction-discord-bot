@@ -39,12 +39,10 @@ jobs:
         run: npm start
         env:
           DISCORD_WEBHOOK_NEWS: ${{ secrets.DISCORD_WEBHOOK_NEWS }}
-          DISCORD_WEBHOOK_X: ${{ secrets.DISCORD_WEBHOOK_X }}
           DISCORD_WEBHOOK_YOUTUBE: ${{ secrets.DISCORD_WEBHOOK_YOUTUBE }}
           DISCORD_WEBHOOK_LIVE: ${{ secrets.DISCORD_WEBHOOK_LIVE }}
           DISCORD_WEBHOOK_OFFICIAL: ${{ secrets.DISCORD_WEBHOOK_OFFICIAL }}
           YOUTUBE_CHANNEL_ID: ${{ secrets.YOUTUBE_CHANNEL_ID }}
-          X_BEARER_TOKEN: ${{ secrets.X_BEARER_TOKEN }}
 
       - name: Save notification state
         run: |
