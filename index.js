@@ -603,6 +603,35 @@ async function testStreamsPage() {
 
   const index = html.indexOf("ytInitialData");
 
+  const data = JSON.parse(
+  html.slice(index + "ytInitialData = ".length).split(";</script>")[0]
+);
+
+function findLiveData(obj, path = "root") {
+  if (!obj || typeof obj !== "object") return;
+
+  if (Array.isArray(obj)) {
+    obj.forEach((item, i) => findLiveData(item, `${path}[${i}]`));
+    return;
+  }
+
+  const keys = Object.keys(obj);
+
+  if (
+    keys.some(key =>
+      /video|live|stream|reel/i.test(key)
+    )
+  ) {
+    console.log("FOUND:", path, keys);
+  }
+
+  for (const [key, value] of Object.entries(obj)) {
+    findLiveData(value, `${path}.${key}`);
+  }
+}
+
+findLiveData(data);
+
   console.log(
     "STREAMS HTML SAMPLE:",
     index >= 0 ? html.slice(index, index + 1000) : html.slice(0, 1000)
