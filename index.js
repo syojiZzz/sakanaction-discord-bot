@@ -445,20 +445,33 @@ async function checkYamaguchiLiveStreams(state) {
 
      const playerJson = extractPlayerResponse(html);
 
-     if (!playerJson) continue;
+if (!playerJson) {
+  console.log("LIVE: playerJson not found:", id);
+  continue;
+}
 
-     const player = JSON.parse(playerJson);
+const player = JSON.parse(playerJson);
 
-      const details =
-        player?.microformat
-          ?.playerMicroformatRenderer
-          ?.liveBroadcastDetails;
+const title =
+  cleanText(entry.title) || "山口一郎 ライブ配信";
 
-      if (!details) continue;
+const details =
+  player?.microformat
+    ?.playerMicroformatRenderer
+    ?.liveBroadcastDetails;
 
-      const title =
-        cleanText(entry.title) || "山口一郎 ライブ配信";
+console.log("LIVE DEBUG:", title, {
+  isUpcoming: details?.isUpcoming ?? null,
+  isLiveNow: details?.isLiveNow ?? null,
+  startTimestamp: details?.startTimestamp ?? null,
+  isLiveContent: player?.videoDetails?.isLiveContent ?? null
+});
 
+if (!details) {
+  console.log("LIVE: details not found:", title);
+  continue;
+}
+      
       // 配信予定
       if (
         details.isUpcoming &&
