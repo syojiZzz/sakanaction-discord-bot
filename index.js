@@ -326,9 +326,17 @@ async function checkYouTubeChannel(
   for (const e of entries.reverse()) {
     const id = e["yt:videoId"];
 
-    if (!id || state[seenKey].includes(id)) continue;
+    if (!id) continue;
 
-    const title = cleanText(e.title) || "新しい動画";
+  　const title = cleanText(e.title) || "新しい動画";
+
+　　if (state[seenKey].includes(id)) {
+  　　console.log(`${source} already seen:`, title || id);
+ 　　 continue;
+　　}
+
+　　console.log(`${source} NEW:`, title || id);
+
 
     await postDiscord(
       webhook,
