@@ -627,5 +627,5 @@ async function runChecks() {
   await saveState(state);
 }
 
-await testStreamsPage();
-console.log("Streams page test completed.");
+await runChecks();
+console.log("One-shot check completed.");
